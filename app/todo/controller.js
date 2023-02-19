@@ -5,17 +5,49 @@ module.exports = {
         try {
             const todo = await Todo.find({ user_id: req.user._id }).select('_id title desc dueDate status');
 
-            res.json({ data: todo });
+            return res.json({
+                status: 'success',
+                data: todo
+            });
 
         } catch (err) {
-            res.status(500).json({ message: err.message || 'Internal Server Error' });
+            return res.status(500).json({
+                status: 'error',
+                message: err.message || 'Internal Server Error'
+            });
+        }
+    },
+
+    get: async (req, res) => {
+        try {
+            const { id } = req.params;
+
+            const todo = await Todo.findOne({ user_id: req.user._id, _id: id });
+
+            if (!todo) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: "Data not found"
+                });
+            }
+
+            return res.json({
+                status: 'success',
+                data: todo
+            });
+
+        } catch (err) {
+            return res.status(500).json({
+                status: 'error',
+                message: err.message || 'Internal Server Error'
+            });
         }
     },
 
     create: async (req, res) => {
         try {
             const { title, desc, dueDate } = req.body;
-            
+
             const todo = new Todo({
                 title,
                 desc,
@@ -25,11 +57,15 @@ module.exports = {
 
             await todo.save();
 
-            res.json({
+            return res.json({
+                status: 'success',
                 data: todo,
             });
         } catch (err) {
-            res.status(500).json({ message: err.message || 'Internal Server Error' });
+            return res.status(500).json({
+                status: 'error',
+                message: err.message || 'Internal Server Error'
+            });
         }
     },
 
@@ -48,17 +84,24 @@ module.exports = {
             const todo = await Todo.findOne({ _id: id, user_id: req.user._id }).select('title desc dueDate status');
 
             if (todo) {
-                res.json({
+                return res.json({
+                    status: 'success',
                     message: 'Successfully',
                     data: todo,
                 })
             } else {
-                res.status(403).json({message: "You haven't access to this Todo"})
+                return res.status(404).json({
+                    status: "error",
+                    message: "data Not Found"
+                })
             }
 
 
         } catch (err) {
-            res.status(500).json({ message: err.message || 'Internal Server Error' });
+            return res.status(500).json({
+                status: 'error',
+                message: err.message || 'Internal Server Error'
+            });
         }
     },
 
@@ -69,15 +112,22 @@ module.exports = {
             const todo = await Todo.findOneAndDelete({ _id: id, user_id: req.user._id })
 
             if (todo) {
-                res.json({
+                return res.json({
+                    status: 'success',
                     message: 'Deleted',
                     data: todo,
                 })
             } else {
-                res.status(403).json({message: "You haven't access to this Todo"})
+                return res.status(404).json({
+                    status: 'error',
+                    message: "data not found"
+                })
             }
         } catch (err) {
-            res.status(500).json({ message: err.message || 'Internal Server Error' });
+            return res.status(500).json({
+                status: 'error',
+                message: err.message || 'Internal Server Error'
+            });
         }
     }
 }

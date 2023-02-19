@@ -13,15 +13,15 @@ module.exports = {
 
             delete user._doc.password;
 
-            res.json({
-                message: 'Success',
+            return res.json({
+                status: 'success',
                 data: user
             })
         } catch (err) {
             if (err && err.name === "ValidationError") {
                 return res.status(422).json({
-                    error: 1,
-                    message: err.message,
+                    status: 'error',
+                    message: err.message || 'Internal server error'
                 })
             }
             next(err);
@@ -31,7 +31,7 @@ module.exports = {
         try {
             const { username, password } = req.body;
 
-            const user = await User.findOne({username});
+            const user = await User.findOne({ username });
 
             if (user) {
                 const checkPassword = bcrypt.compareSync(password, user.password)
@@ -42,16 +42,26 @@ module.exports = {
                         name: user.name
                     }, config.jwtKey);
 
-                    res.json({ data: { token } })
+                    return res.json({
+                        status: 'success',
+                        data: { token }
+                    })
                 } else {
-                    res.status(403).json({ message: "The password that you've entered is incorrect" })
+                    return res.status(403).json({
+                        status: 'error',
+                        message: "The password that you've entered is incorrect"
+                    })
                 }
             } else {
-                res.status(403).json({ message: 'Username not registered' })
+                return res.status(403).json({
+                    status: 'error',
+                    message: 'Username not registered'
+                })
             }
 
         } catch (err) {
-            res.status(500).json({
+            return res.status(500).json({
+                status: 'error',
                 message: err.message || 'Internal server error'
             });
         }
